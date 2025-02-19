@@ -4,7 +4,7 @@ using LinearAlgebra
 using Combinatorics
 using StaticArrays
 
-const Hist = MVector{DICE_MAX_VALUE,UInt8}
+const Hist = MVector{6,Int8}
 
 @enum Category begin
     CAT_ACES
@@ -24,7 +24,7 @@ end
 """
 ヒストグラムに対する得点を計算する
 """
-function calc_score(h::Hist, c::Category)
+function calc_score(h::Hist, c::Category)::Float64
     if c == CAT_ACES
         return h[1] * 1
     elseif c == CAT_DEUCES
@@ -60,7 +60,7 @@ function calc_score(h::Hist, c::Category)
         end
     elseif c == CAT_L_STRAIGHT
         if (h[2] > 0 && h[3] > 0 && h[4] > 0 && h[5] > 0) && (h[1] > 0 || h[6] > 0)
-            return 15
+            return 30
         else
             return 0
         end
@@ -80,6 +80,7 @@ const FINAL_SCORES::Matrix{Float64} = [
     calc_score(h, c) for h in FINAL_HISTS, c in instances(Category)
 ]
 const NUM_FINAL_STATES = length(FINAL_HISTS)
+const FINAL_PROBS = [multinomial(h...) / 6^5 for h in FINAL_HISTS]
 
 const ALL_HISTS::Vector{Hist} = [h for n = 0:6 for h in multiexponents(6, n)]
 const ALL_SCORES::Matrix{Float64} = [
@@ -103,5 +104,8 @@ end
 
 const TRANS_PROBS = [calc_trans_prob(src, dst) for src in ALL_HISTS, dst in FINAL_HISTS]
 const POSSIBLE_TRANS = [all(src .>= dst) ? 1 : 0 for src in FINAL_HISTS, dst in ALL_HISTS]
+
+function calc_score(result::Dict{Category,Float64})
+end
 
 end
